@@ -28,14 +28,14 @@ Build the Autofac project and put it's output into Transformalize's *plugins* fo
 </add>
 ```
 
-This writes 1000 rows of bogus data to an RethinkDb file.  It includes a bold header row.
+This writes 1000 rows of bogus data to an RethinkDb file.
 
 ### Read Usage (not implemented yet)
 
 ```xml
 <add name='TestProcess' >
   <connections>
-    <add name='input' provider='RethinkDb' <add name='output' provider='RethinkDb' server='localhost' database='test' port='28015' />
+    <add name='output' provider='RethinkDb' server='localhost' database='test' port='28015' />
   </connections>
   <order>
       <add field='Identity' />
