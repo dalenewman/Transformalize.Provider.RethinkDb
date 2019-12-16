@@ -28,13 +28,13 @@ using Transformalize.Providers.RethinkDb.Autofac;
 
 namespace IntegrationTests {
 
-    [TestClass]
-    public class Test {
+   [TestClass]
+   public class Test {
 
-        [TestMethod]
-        public void Write() {
+      [TestMethod]
+      public void Write() {
 
-            const string xml = @"<add name='RethinkDb' mode='init'>
+         const string xml = @"<add name='RethinkDb' mode='init'>
   <parameters>
     <add name='Size' type='int' value='1000' />
   </parameters>
@@ -54,21 +54,25 @@ namespace IntegrationTests {
     </add>
   </entities>
 </add>";
-            using (var outer = new ConfigurationContainer().CreateScope(xml)) {
-                using (var inner = new TestContainer(new BogusModule(), new RethinkDbModule()).CreateScope(outer, new ConsoleLogger(LogLevel.Debug))) {
-                    var process = inner.Resolve<Process>();
-                    var controller = inner.Resolve<IProcessController>();
-                    controller.Execute();
+         var logger = new ConsoleLogger(LogLevel.Debug);
 
-                    Assert.AreEqual((uint)1000, process.Entities.First().Inserts);
-                }
+         using (var outer = new ConfigurationContainer().CreateScope(xml, logger)) {
+
+            var process = outer.Resolve<Process>();
+            using (var inner = new Container(new BogusModule(), new RethinkDbModule()).CreateScope(process, logger)) {
+
+               var controller = inner.Resolve<IProcessController>();
+               controller.Execute();
+
+               Assert.AreEqual((uint)1000, process.Entities.First().Inserts);
             }
-        }
+         }
+      }
 
-        [TestMethod]
-        [Ignore("Have not implemented read yet")]
-        public void Read() {
-            const string xml = @"<add name='RethinkDb'>
+      [TestMethod]
+      [Ignore("Have not implemented read yet")]
+      public void Read() {
+         const string xml = @"<add name='RethinkDb'>
   <connections>
     <add name='input' provider='RethinkDb' server='localhost' database='test' port='28015' />
     <add name='output' provider='internal' />
@@ -85,20 +89,17 @@ namespace IntegrationTests {
     </add>
   </entities>
 </add>";
-            using (var outer = new ConfigurationContainer().CreateScope(xml)) {
-                using (var inner = new TestContainer(new RethinkDbModule()).CreateScope(outer, new ConsoleLogger(LogLevel.Debug))) {
+         var logger = new ConsoleLogger(LogLevel.Debug);
+         using (var outer = new ConfigurationContainer().CreateScope(xml, logger)) {
+            var process = outer.Resolve<Process>();
+            using (var inner = new Container(new RethinkDbModule()).CreateScope(process, logger)) {
+               var controller = inner.Resolve<IProcessController>();
+               controller.Execute();
+               var rows = process.Entities.First().Rows;
 
-                    var process = inner.Resolve<Process>();
-
-                    var controller = inner.Resolve<IProcessController>();
-                    controller.Execute();
-                    var rows = process.Entities.First().Rows;
-
-                    Assert.AreEqual(10, rows.Count);
-
-
-                }
+               Assert.AreEqual(10, rows.Count);
             }
-        }
-    }
+         }
+      }
+   }
 }
